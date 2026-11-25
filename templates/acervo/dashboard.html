@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+{% extends 'base.html' %}{% load static %}
 {% block titulo %}Dashboard{% endblock %}
 {% block conteudo %}
 <div class="cabeca"><h1>Dashboard</h1></div>
@@ -17,6 +17,12 @@
 </div>
 
 <div class="grade">
+  {% if mostra_series %}
+  <section class="painel"><h2>Empréstimos por mês</h2>
+    <div class="grafico"><canvas id="graf-mes"></canvas></div>{{ por_mes|json_script:'dados-mes' }}</section>
+  {% endif %}
+  <section class="painel"><h2>Por categoria</h2>
+    <div class="grafico"><canvas id="graf-categoria"></canvas></div>{{ por_categoria|json_script:'dados-categoria' }}</section>
   <section class="painel"><h2>Livros mais emprestados</h2>
     <table>{% for item in ranking %}
       <tr><td>{{ item.livro__titulo }}</td><td class="num dir">{{ item.total }}</td></tr>
@@ -27,4 +33,8 @@
       <td class="dir"><span class="selo ruim">{{ e.dias_atraso }} dia{{ e.dias_atraso|pluralize }}</span></td></tr>
       {% empty %}<tr><td class="suave">Nenhum atraso.</td></tr>{% endfor %}</table></section>
 </div>
+{% endblock %}
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<script src="{% static 'js/dashboard.js' %}"></script>
 {% endblock %}
