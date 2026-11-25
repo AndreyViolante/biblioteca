@@ -8,6 +8,7 @@ router.register('livros', api_views.LivroViewSet)
 router.register('categorias', api_views.CategoriaViewSet)
 router.register('autores', api_views.AutorViewSet)
 router.register('leitores', api_views.LeitorViewSet)
+router.register('emprestimos', api_views.EmprestimoViewSet)
 
 urlpatterns = [
     path('', include(router.urls)),
