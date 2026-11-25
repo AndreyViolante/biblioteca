@@ -1,3 +1,4 @@
+from django.core.exceptions import ValidationError
 from django.db import models
 
 
@@ -19,8 +20,24 @@ class Organizacao(models.Model):
 class DaOrganizacao(models.Model):
     """Base abstrata: todo model de negócio pertence a uma organização."""
 
+    # Campos que não podem se repetir DENTRO da mesma organização.
+    unicos_por_org = ()
+
     organizacao = models.ForeignKey(
         Organizacao, on_delete=models.PROTECT, verbose_name='organização')
 
     class Meta:
         abstract = True
+
+    def clean(self):
+        super().clean()
+        erros = {}
+        for campo in self.unicos_por_org:
+            valor = getattr(self, campo)
+            repetidos = type(self).objects.filter(
+                organizacao_id=self.organizacao_id, **{campo: valor})
+            if valor and repetidos.exclude(pk=self.pk).exists():
+                rotulo = self._meta.get_field(campo).verbose_name
+                erros[campo] = f'Já existe um cadastro com este {rotulo} na sua organização.'
+        if erros:
+            raise ValidationError(erros)
