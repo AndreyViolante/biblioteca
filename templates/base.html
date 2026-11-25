@@ -15,6 +15,7 @@
   </div>
   <nav>
     {% url 'categorias' as u %}<a href="{{ u }}" {% if u in request.path %}class="ativo"{% endif %}>Categorias</a>
+    {% url 'autores' as u %}<a href="{{ u }}" {% if u in request.path %}class="ativo"{% endif %}>Autores</a>
   </nav>
   <form method="post" action="{% url 'logout' %}">{% csrf_token %}<button class="sair">Sair</button></form>
 </header>

@@ -1,6 +1,6 @@
 from django import forms
 
-from .models import Categoria
+from .models import Autor, Categoria
 
 
 class FormDaOrganizacao(forms.ModelForm):
@@ -18,4 +18,10 @@ class FormDaOrganizacao(forms.ModelForm):
 class CategoriaForm(FormDaOrganizacao):
     class Meta:
         model = Categoria
+        fields = ['nome']
+
+
+class AutorForm(FormDaOrganizacao):
+    class Meta:
+        model = Autor
         fields = ['nome']

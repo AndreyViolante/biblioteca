@@ -5,8 +5,8 @@ from django.shortcuts import get_object_or_404, redirect, render
 
 from core.acesso import org_atual, papel_requerido, perfil_requerido
 
-from .forms import CategoriaForm
-from .models import Categoria
+from .forms import AutorForm, CategoriaForm
+from .models import Autor, Categoria
 
 
 # ---------- Funções comuns a todos os cadastros ----------
@@ -70,3 +70,27 @@ def editar_categoria(request, pk):
 @papel_requerido('admin')
 def excluir_categoria(request, pk):
     return _excluir(request, Categoria, 'categorias', pk)
+
+
+@perfil_requerido
+def lista_autores(request):
+    qs = Autor.objects.filter(organizacao=org_atual(request))
+    return render(request, 'acervo/nomes.html', {
+        'pagina': _paginar(request, qs), 'titulo': 'Autores',
+        'rota_nova': 'novo_autor', 'rota_editar': 'editar_autor',
+        'rota_excluir': 'excluir_autor'})
+
+
+@papel_requerido('admin')
+def novo_autor(request):
+    return _salvar(request, AutorForm, 'autores', 'Novo autor')
+
+
+@papel_requerido('admin')
+def editar_autor(request, pk):
+    return _salvar(request, AutorForm, 'autores', 'Editar autor', pk)
+
+
+@papel_requerido('admin')
+def excluir_autor(request, pk):
+    return _excluir(request, Autor, 'autores', pk)
