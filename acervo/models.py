@@ -136,6 +136,7 @@ class Emprestimo(DaOrganizacao):
     class Meta:
         ordering = ['-data_saida', '-id']
         verbose_name = 'empréstimo'
+        indexes = [models.Index(fields=['organizacao', 'data_saida'])]
 
     def __str__(self):
         return f'{self.livro} para {self.leitor}'
