@@ -14,3 +14,13 @@ class Organizacao(models.Model):
 
     def __str__(self):
         return self.nome
+
+
+class DaOrganizacao(models.Model):
+    """Base abstrata: todo model de negócio pertence a uma organização."""
+
+    organizacao = models.ForeignKey(
+        Organizacao, on_delete=models.PROTECT, null=True, verbose_name='organização')
+
+    class Meta:
+        abstract = True

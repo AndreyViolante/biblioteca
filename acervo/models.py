@@ -4,10 +4,12 @@ from django.core.validators import MinValueValidator, RegexValidator
 from django.db import models
 from django.utils import timezone
 
+from core.models import DaOrganizacao
+
 PRAZO_DIAS = 14
 
 
-class Categoria(models.Model):
+class Categoria(DaOrganizacao):
     nome = models.CharField(max_length=80, unique=True)
 
     class Meta:
@@ -17,7 +19,7 @@ class Categoria(models.Model):
         return self.nome
 
 
-class Autor(models.Model):
+class Autor(DaOrganizacao):
     nome = models.CharField(max_length=120, unique=True)
 
     class Meta:
@@ -28,7 +30,7 @@ class Autor(models.Model):
         return self.nome
 
 
-class Livro(models.Model):
+class Livro(DaOrganizacao):
     titulo = models.CharField('título', max_length=200)
     isbn = models.CharField(
         'ISBN', max_length=13, unique=True,
@@ -45,7 +47,7 @@ class Livro(models.Model):
         return self.titulo
 
 
-class Leitor(models.Model):
+class Leitor(DaOrganizacao):
     nome = models.CharField(max_length=120)
     email = models.EmailField('e-mail', unique=True)
     telefone = models.CharField(max_length=20, blank=True)
@@ -63,7 +65,7 @@ def prazo_padrao():
     return timezone.localdate() + timedelta(days=PRAZO_DIAS)
 
 
-class Emprestimo(models.Model):
+class Emprestimo(DaOrganizacao):
     livro = models.ForeignKey(Livro, on_delete=models.PROTECT)
     leitor = models.ForeignKey(Leitor, on_delete=models.PROTECT)
     data_saida = models.DateField('saída', default=timezone.localdate)
