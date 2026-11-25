@@ -9,6 +9,7 @@ from django.utils import timezone
 from core.models import DaOrganizacao
 
 PRAZO_DIAS = 14
+LIMITE_POR_LEITOR = 3
 
 
 class Categoria(DaOrganizacao):
@@ -147,3 +148,32 @@ class Emprestimo(DaOrganizacao):
     def dias_atraso(self):
         fim = self.devolvido_em or timezone.localdate()
         return max((fim - self.data_prevista).days, 0)
+
+    def clean(self):
+        """Regras do empréstimo: valem no Admin, nos forms e na API."""
+        super().clean()
+        if not (self.livro_id and self.leitor_id):
+            return
+        if self.livro.organizacao_id != self.organizacao_id:
+            raise ValidationError({'livro': 'Livro de outra organização.'})
+        if self.leitor.organizacao_id != self.organizacao_id:
+            raise ValidationError({'leitor': 'Leitor de outra organização.'})
+        if self.data_prevista and self.data_prevista < self.data_saida:
+            raise ValidationError({
+                'data_prevista': 'A devolução não pode ser antes da saída.'})
+        if self.pk is None:
+            self._validar_novo()
+
+    def _validar_novo(self):
+        abertos = self.leitor.emprestimo_set.filter(devolvido_em__isnull=True)
+        if not self.leitor.ativo:
+            raise ValidationError({'leitor': 'Este leitor está inativo.'})
+        if abertos.filter(data_prevista__lt=timezone.localdate()).exists():
+            raise ValidationError({'leitor': 'Este leitor tem empréstimo atrasado.'})
+        if abertos.count() >= LIMITE_POR_LEITOR:
+            raise ValidationError({
+                'leitor': f'Este leitor já tem {LIMITE_POR_LEITOR} empréstimos abertos.'})
+        if abertos.filter(livro=self.livro).exists():
+            raise ValidationError({'livro': 'O leitor já está com este livro.'})
+        if not self.livro.disponivel:
+            raise ValidationError({'livro': 'Não há exemplar disponível deste livro.'})
