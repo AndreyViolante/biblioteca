@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+{% block titulo %}Sem perfil{% endblock %}
+{% block conteudo %}
+<section class="painel estreito">
+  <h1>Usuário sem perfil</h1>
+  <p>O usuário <strong>{{ user.username }}</strong> não está ligado a nenhuma organização.
+  Crie um Perfil para ele no Admin.</p>
+  {% if user.is_staff %}<p><a href="{% url 'admin:index' %}">Abrir o Admin</a></p>{% endif %}
+  <form method="post" action="{% url 'logout' %}">{% csrf_token %}<button>Sair</button></form>
+</section>
+{% endblock %}
