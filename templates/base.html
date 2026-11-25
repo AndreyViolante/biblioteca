@@ -14,6 +14,7 @@
     <small>{{ user.get_full_name|default:user.username }}, {{ user.perfil.get_papel_display|lower }}</small>
   </div>
   <nav>
+    {% url 'categorias' as u %}<a href="{{ u }}" {% if u in request.path %}class="ativo"{% endif %}>Categorias</a>
   </nav>
   <form method="post" action="{% url 'logout' %}">{% csrf_token %}<button class="sair">Sair</button></form>
 </header>

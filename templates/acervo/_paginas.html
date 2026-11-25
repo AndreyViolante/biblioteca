@@ -1,0 +1,7 @@
+{% if pagina.has_other_pages %}
+<p class="paginas">
+  {% if pagina.has_previous %}<a href="?{{ pagina.filtros }}&page={{ pagina.previous_page_number }}">Anterior</a>{% endif %}
+  <span>Página {{ pagina.number }} de {{ pagina.paginator.num_pages }}</span>
+  {% if pagina.has_next %}<a href="?{{ pagina.filtros }}&page={{ pagina.next_page_number }}">Próxima</a>{% endif %}
+</p>
+{% endif %}

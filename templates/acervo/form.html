@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+{% block titulo %}{{ titulo }}{% endblock %}
+{% block conteudo %}
+<section class="painel medio">
+  <h1>{{ titulo }}</h1>
+  <form method="post">{% csrf_token %}
+    {{ form.as_p }}
+    <button>Salvar</button> <a class="botao claro" href="{% url voltar %}">Cancelar</a>
+  </form>
+</section>
+{% endblock %}

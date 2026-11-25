@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+{% block titulo %}Excluir{% endblock %}
+{% block conteudo %}
+<section class="painel medio">
+  <h1>Excluir registro</h1>
+  <p>Excluir <strong>{{ objeto }}</strong>? Esta ação não pode ser desfeita.</p>
+  <form method="post">{% csrf_token %}
+    <button class="perigo">Excluir</button> <a class="botao claro" href="{% url voltar %}">Cancelar</a>
+  </form>
+</section>
+{% endblock %}
