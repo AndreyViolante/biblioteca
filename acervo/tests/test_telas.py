@@ -177,3 +177,29 @@ class DashboardTest(BaseTest):
         self.assertEqual(len(texto.strip().splitlines()), 4)  # cabeçalho + 3
         self.assertIn("'=1+1", texto)
         self.assertNotIn('Livro da B', texto)
+
+
+class ConsultasTest(BaseTest):
+    """Trava o desempenho: mais linhas não podem gerar mais consultas."""
+
+    def contar(self, url):
+        from django.db import connection
+        from django.test.utils import CaptureQueriesContext
+        with CaptureQueriesContext(connection) as ctx:
+            self.client.get(url)
+        return len(ctx)
+
+    def test_listas_sem_n_mais_1(self):
+        self.client.force_login(self.admin_a)
+        self.emprestar(self.livro_a, self.leitor_a)
+        urls = ('/livros/', '/emprestimos/?situacao=todos', '/dashboard/', '/api/livros/',
+                '/api/emprestimos/')
+        for url in urls:
+            self.client.get(url)
+        antes = {url: self.contar(url) for url in urls}
+        for i in range(5):
+            livro = self.criar_livro(self.org_a, f'N{i}', f'666666666666{i}')
+            leitor = Leitor.objects.create(
+                organizacao=self.org_a, nome=f'N{i}', email=f'n{i}@exemplo.com')
+            self.emprestar(livro, leitor)
+        self.assertEqual({url: self.contar(url) for url in urls}, antes)
