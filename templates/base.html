@@ -1,0 +1,16 @@
+{% load static %}<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block titulo %}Biblioteca{% endblock %}</title>
+  <link rel="stylesheet" href="{% static 'css/estilo.css' %}">
+</head>
+<body>
+<main>
+  {% for m in messages %}<p class="aviso {{ m.tags }}">{{ m }}</p>{% endfor %}
+  {% block conteudo %}{% endblock %}
+</main>
+{% block scripts %}{% endblock %}
+</body>
+</html>
