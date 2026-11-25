@@ -1,7 +1,9 @@
 from datetime import timedelta
 
+from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator, RegexValidator
 from django.db import models
+from django.db.models import Count, Q
 from django.utils import timezone
 
 from core.models import DaOrganizacao
@@ -40,6 +42,15 @@ class Autor(DaOrganizacao):
         return self.nome
 
 
+class LivroQuerySet(models.QuerySet):
+    def com_disponibilidade(self):
+        """Conta os empréstimos abertos na mesma consulta (evita N+1)."""
+        return self.annotate(qtd_abertos=Count(
+            'emprestimo', distinct=True,
+            filter=Q(emprestimo__devolvido_em__isnull=True)
+        )).order_by('titulo')  # o GROUP BY do annotate ignora o Meta.ordering
+
+
 class Livro(DaOrganizacao):
     unicos_por_org = ('isbn',)
 
@@ -52,6 +63,8 @@ class Livro(DaOrganizacao):
     autores = models.ManyToManyField(Autor)
     exemplares = models.PositiveIntegerField(default=1, validators=[MinValueValidator(1)])
 
+    objects = LivroQuerySet.as_manager()
+
     class Meta:
         ordering = ['titulo']
         constraints = [
@@ -61,6 +74,31 @@ class Livro(DaOrganizacao):
 
     def __str__(self):
         return self.titulo
+
+    @property
+    def emprestados(self):
+        # Usa o valor do annotate quando existe; senão, consulta o banco.
+        if hasattr(self, 'qtd_abertos'):
+            return self.qtd_abertos
+        if not self.pk:
+            return 0
+        return self.emprestimo_set.filter(devolvido_em__isnull=True).count()
+
+    @property
+    def disponiveis(self):
+        return max(self.exemplares - self.emprestados, 0)
+
+    @property
+    def disponivel(self):
+        return self.disponiveis > 0
+
+    def clean(self):
+        super().clean()
+        if self.ano and self.ano > timezone.localdate().year:
+            raise ValidationError({'ano': 'O ano não pode estar no futuro.'})
+        if self.exemplares is not None and self.exemplares < self.emprestados:
+            raise ValidationError({
+                'exemplares': f'Há {self.emprestados} exemplar(es) emprestado(s) agora.'})
 
 
 class Leitor(DaOrganizacao):
