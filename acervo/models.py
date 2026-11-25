@@ -9,3 +9,14 @@ class Categoria(models.Model):
 
     def __str__(self):
         return self.nome
+
+
+class Autor(models.Model):
+    nome = models.CharField(max_length=120, unique=True)
+
+    class Meta:
+        ordering = ['nome']
+        verbose_name_plural = 'autores'
+
+    def __str__(self):
+        return self.nome
