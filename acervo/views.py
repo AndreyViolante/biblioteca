@@ -5,8 +5,8 @@ from django.shortcuts import get_object_or_404, redirect, render
 
 from core.acesso import org_atual, papel_requerido, perfil_requerido
 
-from .forms import AutorForm, CategoriaForm
-from .models import Autor, Categoria
+from .forms import AutorForm, CategoriaForm, LivroForm
+from .models import Autor, Categoria, Livro
 
 
 # ---------- Funções comuns a todos os cadastros ----------
@@ -44,6 +44,34 @@ def _excluir(request, model, rota, pk):
             messages.error(request, f'"{objeto}" está em uso e não pode ser excluído.')
         return redirect(rota)
     return render(request, 'acervo/confirmar.html', {'objeto': objeto, 'voltar': rota})
+
+
+# ---------- Livros ----------
+
+@perfil_requerido
+def lista_livros(request):
+    org = org_atual(request)
+    livros = (
+        Livro.objects.filter(organizacao=org)
+        .com_disponibilidade()
+        .select_related('categoria')
+        .prefetch_related('autores'))
+    return render(request, 'acervo/livros.html', {'pagina': _paginar(request, livros)})
+
+
+@papel_requerido('admin')
+def novo_livro(request):
+    return _salvar(request, LivroForm, 'livros', 'Novo livro')
+
+
+@papel_requerido('admin')
+def editar_livro(request, pk):
+    return _salvar(request, LivroForm, 'livros', 'Editar livro', pk)
+
+
+@papel_requerido('admin')
+def excluir_livro(request, pk):
+    return _excluir(request, Livro, 'livros', pk)
 
 
 # ---------- Categorias e autores ----------

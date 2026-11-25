@@ -1,6 +1,6 @@
 from django import forms
 
-from .models import Autor, Categoria
+from .models import Autor, Categoria, Livro
 
 
 class FormDaOrganizacao(forms.ModelForm):
@@ -25,3 +25,10 @@ class AutorForm(FormDaOrganizacao):
     class Meta:
         model = Autor
         fields = ['nome']
+
+
+class LivroForm(FormDaOrganizacao):
+    class Meta:
+        model = Livro
+        fields = ['titulo', 'isbn', 'ano', 'categoria', 'autores', 'exemplares']
+        widgets = {'autores': forms.CheckboxSelectMultiple}

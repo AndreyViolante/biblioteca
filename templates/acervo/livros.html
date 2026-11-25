@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+{% block titulo %}Livros{% endblock %}
+{% block conteudo %}
+<div class="cabeca"><h1>Livros</h1>
+  {% if user.perfil.eh_admin %}<a class="botao" href="{% url 'novo_livro' %}">Cadastrar</a>{% endif %}</div>
+<div class="tabela"><table>
+  <thead><tr><th>Título</th><th>Autores</th><th>Categoria</th><th>ISBN</th><th>Disponíveis</th><th></th></tr></thead>
+  <tbody>
+  {% for livro in pagina %}
+    <tr>
+      <td><strong>{{ livro.titulo }}</strong> <small class="suave">{{ livro.ano }}</small></td>
+      <td>{% for a in livro.autores.all %}{{ a.nome }}{% if not forloop.last %}, {% endif %}{% endfor %}</td>
+      <td>{{ livro.categoria.nome }}</td>
+      <td class="num">{{ livro.isbn }}</td>
+      <td><span class="selo {% if livro.disponivel %}ok{% else %}ruim{% endif %}">{{ livro.disponiveis }} de {{ livro.exemplares }}</span></td>
+      <td class="acoes">{% if user.perfil.eh_admin %}<a href="{% url 'editar_livro' livro.pk %}">Editar</a>
+        <a href="{% url 'excluir_livro' livro.pk %}">Excluir</a>{% endif %}</td>
+    </tr>
+  {% empty %}<tr><td colspan="6" class="suave">Nenhum livro encontrado.</td></tr>{% endfor %}
+  </tbody>
+</table></div>
+{% include 'acervo/_paginas.html' %}
+{% endblock %}
