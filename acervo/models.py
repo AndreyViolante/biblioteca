@@ -177,3 +177,9 @@ class Emprestimo(DaOrganizacao):
             raise ValidationError({'livro': 'O leitor já está com este livro.'})
         if not self.livro.disponivel:
             raise ValidationError({'livro': 'Não há exemplar disponível deste livro.'})
+
+    def devolver(self):
+        if self.devolvido_em:
+            raise ValidationError('Este empréstimo já foi devolvido.')
+        self.devolvido_em = timezone.localdate()
+        self.save(update_fields=['devolvido_em'])

@@ -1,8 +1,10 @@
 from django.contrib import messages
+from django.core.exceptions import ValidationError
 from django.core.paginator import Paginator
 from django.db.models import ProtectedError, Q
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
+from django.views.decorators.http import require_POST
 
 from core.acesso import org_atual, papel_requerido, perfil_requerido
 
@@ -186,6 +188,18 @@ def lista_emprestimos(request):
 @perfil_requerido
 def novo_emprestimo(request):
     return _salvar(request, EmprestimoForm, 'emprestimos', 'Novo empréstimo')
+
+
+@perfil_requerido
+@require_POST
+def devolver_emprestimo(request, pk):
+    emprestimo = get_object_or_404(Emprestimo, pk=pk, organizacao=org_atual(request))
+    try:
+        emprestimo.devolver()
+        messages.success(request, f'"{emprestimo.livro}" devolvido.')
+    except ValidationError as erro:
+        messages.error(request, erro.messages[0])
+    return redirect('emprestimos')
 
 
 @papel_requerido('admin')

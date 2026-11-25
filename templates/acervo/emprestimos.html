@@ -19,6 +19,7 @@
         {% elif e.atrasado %}<span class="selo ruim">{{ e.dias_atraso }} dia{{ e.dias_atraso|pluralize }} de atraso</span>
         {% else %}<span class="selo ok">no prazo</span>{% endif %}</td>
       <td class="acoes">
+        {% if not e.devolvido_em %}<form method="post" action="{% url 'devolver_emprestimo' e.pk %}">{% csrf_token %}<button class="link">Devolver</button></form>{% endif %}
         {% if user.perfil.eh_admin %}<a href="{% url 'excluir_emprestimo' e.pk %}">Excluir</a>{% endif %}
       </td>
     </tr>

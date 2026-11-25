@@ -25,5 +25,6 @@ urlpatterns = [
 
     path('emprestimos/', views.lista_emprestimos, name='emprestimos'),
     path('emprestimos/novo/', views.novo_emprestimo, name='novo_emprestimo'),
+    path('emprestimos/<int:pk>/devolver/', views.devolver_emprestimo, name='devolver_emprestimo'),
     path('emprestimos/<int:pk>/excluir/', views.excluir_emprestimo, name='excluir_emprestimo'),
 ]
