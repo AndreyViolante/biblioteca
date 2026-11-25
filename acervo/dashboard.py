@@ -3,6 +3,21 @@ from django.db.models import Count, Q
 from django.db.models.functions import TruncMonth
 from django.utils import timezone
 
+from .forms import PeriodoForm
+from .models import Emprestimo
+
+
+def emprestimos_do_periodo(request, org):
+    """Base de toda métrica: já filtrada por organização e período."""
+    qs = Emprestimo.objects.filter(organizacao=org)
+    form = PeriodoForm(request.GET)
+    if form.is_valid():
+        if form.cleaned_data['inicio']:
+            qs = qs.filter(data_saida__gte=form.cleaned_data['inicio'])
+        if form.cleaned_data['fim']:
+            qs = qs.filter(data_saida__lte=form.cleaned_data['fim'])
+    return qs, form
+
 
 def kpis(base):
     aberto = Q(devolvido_em__isnull=True)

@@ -58,3 +58,17 @@ class FiltroLivroForm(forms.Form):
         super().__init__(*args, **kwargs)
         self.fields['categoria'].queryset = Categoria.objects.filter(organizacao=org)
         self.fields['q'].widget.attrs['placeholder'] = 'Título, autor ou ISBN'
+
+
+class PeriodoForm(forms.Form):
+    inicio = forms.DateField(
+        required=False, label='De', widget=forms.DateInput(attrs={'type': 'date'}))
+    fim = forms.DateField(
+        required=False, label='Até', widget=forms.DateInput(attrs={'type': 'date'}))
+
+    def clean(self):
+        dados = super().clean()
+        inicio, fim = dados.get('inicio'), dados.get('fim')
+        if inicio and fim and fim < inicio:
+            raise forms.ValidationError('A data final deve ser depois da inicial.')
+        return dados
