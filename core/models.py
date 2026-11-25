@@ -1,3 +1,4 @@
+from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.db import models
 
@@ -41,3 +42,17 @@ class DaOrganizacao(models.Model):
                 erros[campo] = f'Já existe um cadastro com este {rotulo} na sua organização.'
         if erros:
             raise ValidationError(erros)
+
+
+class Perfil(models.Model):
+    """Liga o usuário a UMA organização."""
+
+    usuario = models.OneToOneField(User, on_delete=models.CASCADE, verbose_name='usuário')
+    organizacao = models.ForeignKey(
+        Organizacao, on_delete=models.PROTECT, verbose_name='organização')
+
+    class Meta:
+        verbose_name_plural = 'perfis'
+
+    def __str__(self):
+        return f'{self.usuario} ({self.organizacao})'
