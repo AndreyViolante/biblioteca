@@ -54,3 +54,13 @@ def por_categoria(base):
         .annotate(total=Count('id'))
         .order_by('-total', 'livro__categoria__nome'))
     return [{'rotulo': r['livro__categoria__nome'], 'total': r['total']} for r in linhas]
+
+
+def atrasados(org):
+    """Quem está com livro atrasado agora? (não depende do período)"""
+    return (
+        Emprestimo.objects
+        .filter(organizacao=org, devolvido_em__isnull=True,
+                data_prevista__lt=timezone.localdate())
+        .select_related('livro', 'leitor')
+        .order_by('data_prevista')[:10])

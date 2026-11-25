@@ -8,6 +8,7 @@ from django.views.decorators.http import require_POST
 
 from core.acesso import org_atual, papel_requerido, perfil_requerido
 
+from . import dashboard as metricas
 from .forms import (AutorForm, CategoriaForm, EmprestimoForm, FiltroLivroForm,
                     LeitorForm, LivroForm)
 from .models import Autor, Categoria, Emprestimo, Leitor, Livro
@@ -205,3 +206,22 @@ def devolver_emprestimo(request, pk):
 @papel_requerido('admin')
 def excluir_emprestimo(request, pk):
     return _excluir(request, Emprestimo, 'emprestimos', pk)
+
+
+# ---------- Dashboard e relatório ----------
+
+@perfil_requerido
+def dashboard(request):
+    org = org_atual(request)
+    base, form = metricas.emprestimos_do_periodo(request, org)
+    contexto = {
+        'form': form,
+        'kpis': metricas.kpis(base),
+        'ranking': metricas.ranking_livros(base),
+        'por_categoria': metricas.por_categoria(base),
+        'atrasados': metricas.atrasados(org),
+        'mostra_series': request.user.perfil.eh_admin,
+    }
+    if contexto['mostra_series']:
+        contexto['por_mes'] = metricas.por_mes(base)
+    return render(request, 'acervo/dashboard.html', contexto)

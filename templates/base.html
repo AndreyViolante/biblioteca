@@ -14,6 +14,7 @@
     <small>{{ user.get_full_name|default:user.username }}, {{ user.perfil.get_papel_display|lower }}</small>
   </div>
   <nav>
+    {% url 'dashboard' as u %}<a href="{{ u }}" {% if u in request.path %}class="ativo"{% endif %}>Dashboard</a>
     {% url 'emprestimos' as u %}<a href="{{ u }}" {% if u in request.path %}class="ativo"{% endif %}>Empréstimos</a>
     {% url 'livros' as u %}<a href="{{ u }}" {% if u in request.path %}class="ativo"{% endif %}>Livros</a>
     {% url 'leitores' as u %}<a href="{{ u }}" {% if u in request.path %}class="ativo"{% endif %}>Leitores</a>

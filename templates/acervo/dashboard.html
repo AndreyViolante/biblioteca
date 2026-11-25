@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% block titulo %}Dashboard{% endblock %}
+{% block conteudo %}
+<div class="cabeca"><h1>Dashboard</h1></div>
+<form class="filtro">
+  <label>De {{ form.inicio }}</label> <label>Até {{ form.fim }}</label>
+  <button>Aplicar</button> <a class="botao claro" href="{% url 'dashboard' %}">Limpar</a>
+</form>
+{% if form.errors %}<p class="aviso error">Período inválido, mostrando todos os dados.
+  {% for lista in form.errors.values %}{{ lista|join:' ' }} {% endfor %}</p>{% endif %}
+
+<div class="cards">
+  <div class="card"><small>Empréstimos</small><strong>{{ kpis.total }}</strong></div>
+  <div class="card"><small>Leitores atendidos</small><strong>{{ kpis.leitores }}</strong></div>
+  <div class="card"><small>Em aberto</small><strong>{{ kpis.abertos }}</strong></div>
+  <div class="card {% if kpis.atrasados %}alerta{% endif %}"><small>Atrasados</small><strong>{{ kpis.atrasados }}</strong></div>
+</div>
+
+<div class="grade">
+  <section class="painel"><h2>Livros mais emprestados</h2>
+    <table>{% for item in ranking %}
+      <tr><td>{{ item.livro__titulo }}</td><td class="num dir">{{ item.total }}</td></tr>
+      {% empty %}<tr><td class="suave">Sem dados no período.</td></tr>{% endfor %}</table></section>
+  <section class="painel"><h2>Atrasados agora</h2>
+    <table>{% for e in atrasados %}
+      <tr><td>{{ e.leitor.nome }}<br><small class="suave">{{ e.livro.titulo }}</small></td>
+      <td class="dir"><span class="selo ruim">{{ e.dias_atraso }} dia{{ e.dias_atraso|pluralize }}</span></td></tr>
+      {% empty %}<tr><td class="suave">Nenhum atraso.</td></tr>{% endfor %}</table></section>
+</div>
+{% endblock %}
