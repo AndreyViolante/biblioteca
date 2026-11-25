@@ -1,5 +1,6 @@
 """Métricas do dashboard. Usadas pela tela, pelo CSV e pela API."""
 from django.db.models import Count, Q
+from django.db.models.functions import TruncMonth
 from django.utils import timezone
 
 
@@ -19,3 +20,22 @@ def ranking_livros(base):
         base.values('livro__titulo')
         .annotate(total=Count('id'))
         .order_by('-total', 'livro__titulo')[:5])
+
+
+def por_mes(base):
+    """Como os empréstimos evoluem mês a mês?"""
+    linhas = (
+        base.annotate(mes=TruncMonth('data_saida'))
+        .values('mes')
+        .annotate(total=Count('id'))
+        .order_by('mes'))
+    return [{'rotulo': r['mes'].strftime('%m/%Y'), 'total': r['total']} for r in linhas]
+
+
+def por_categoria(base):
+    """Qual categoria é mais procurada?"""
+    linhas = (
+        base.values('livro__categoria__nome')
+        .annotate(total=Count('id'))
+        .order_by('-total', 'livro__categoria__nome'))
+    return [{'rotulo': r['livro__categoria__nome'], 'total': r['total']} for r in linhas]
