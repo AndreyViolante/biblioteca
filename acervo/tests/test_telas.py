@@ -1,5 +1,6 @@
 from datetime import timedelta
 
+from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.utils import timezone
 
@@ -49,6 +50,38 @@ class IsolamentoTest(BaseTest):
         # Repetido dentro da própria organização: erro no campo, sem IntegrityError.
         r = self.client.post('/livros/novo/', dados)
         self.assertIn('isbn', r.context['form'].errors)
+
+
+class PapeisTest(BaseTest):
+    def test_sem_login_redireciona(self):
+        for url in ('/dashboard/', '/livros/', '/leitores/', '/emprestimos/'):
+            self.assertEqual(self.client.get(url).status_code, 302)
+
+    def test_operador_nao_mexe_no_acervo(self):
+        self.client.force_login(self.operador_a)
+        self.assertEqual(self.client.get('/livros/novo/').status_code, 403)
+        r = self.client.post(f'/livros/{self.livro_a.pk}/excluir/')
+        self.assertEqual(r.status_code, 403)
+        self.assertTrue(Livro.objects.filter(pk=self.livro_a.pk).exists())
+
+    def test_operador_cadastra_leitor_e_empresta(self):
+        self.client.force_login(self.operador_a)
+        self.client.post('/leitores/novo/', {'nome': 'Z', 'email': 'z@exemplo.com', 'ativo': 'on'})
+        self.assertEqual(Leitor.objects.get(nome='Z').organizacao, self.org_a)
+        self.client.post('/emprestimos/novo/', {
+            'livro': self.livro_a.pk, 'leitor': self.leitor_a.pk,
+            'data_prevista': timezone.localdate() + timedelta(days=7)})
+        self.assertEqual(Emprestimo.objects.get().organizacao, self.org_a)
+
+    def test_superusuario_sem_perfil_recebe_aviso(self):
+        self.client.force_login(User.objects.create_superuser('dono'))
+        self.assertContains(self.client.get('/dashboard/'), 'sem perfil', status_code=403)
+
+    def test_excluir_livro_em_uso_mostra_erro(self):
+        self.emprestar(self.livro_a, self.leitor_a)
+        self.client.force_login(self.admin_a)
+        r = self.client.post(f'/livros/{self.livro_a.pk}/excluir/', follow=True)
+        self.assertContains(r, 'está em uso')
 
 
 class RegrasEmprestimoTest(BaseTest):
