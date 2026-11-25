@@ -17,4 +17,9 @@ urlpatterns = [
     path('autores/novo/', views.novo_autor, name='novo_autor'),
     path('autores/<int:pk>/editar/', views.editar_autor, name='editar_autor'),
     path('autores/<int:pk>/excluir/', views.excluir_autor, name='excluir_autor'),
+
+    path('leitores/', views.lista_leitores, name='leitores'),
+    path('leitores/novo/', views.novo_leitor, name='novo_leitor'),
+    path('leitores/<int:pk>/editar/', views.editar_leitor, name='editar_leitor'),
+    path('leitores/<int:pk>/excluir/', views.excluir_leitor, name='excluir_leitor'),
 ]

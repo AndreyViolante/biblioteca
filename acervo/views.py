@@ -5,8 +5,8 @@ from django.shortcuts import get_object_or_404, redirect, render
 
 from core.acesso import org_atual, papel_requerido, perfil_requerido
 
-from .forms import AutorForm, CategoriaForm, FiltroLivroForm, LivroForm
-from .models import Autor, Categoria, Livro
+from .forms import AutorForm, CategoriaForm, FiltroLivroForm, LeitorForm, LivroForm
+from .models import Autor, Categoria, Leitor, Livro
 
 
 # ---------- Funções comuns a todos os cadastros ----------
@@ -131,3 +131,29 @@ def editar_autor(request, pk):
 @papel_requerido('admin')
 def excluir_autor(request, pk):
     return _excluir(request, Autor, 'autores', pk)
+
+
+# ---------- Leitores (operador cadastra e edita; só admin exclui) ----------
+
+@perfil_requerido
+def lista_leitores(request):
+    qs = Leitor.objects.filter(organizacao=org_atual(request))
+    q = request.GET.get('q', '').strip()
+    if q:
+        qs = qs.filter(Q(nome__icontains=q) | Q(email__icontains=q))
+    return render(request, 'acervo/leitores.html', {'pagina': _paginar(request, qs), 'q': q})
+
+
+@perfil_requerido
+def novo_leitor(request):
+    return _salvar(request, LeitorForm, 'leitores', 'Novo leitor')
+
+
+@perfil_requerido
+def editar_leitor(request, pk):
+    return _salvar(request, LeitorForm, 'leitores', 'Editar leitor', pk)
+
+
+@papel_requerido('admin')
+def excluir_leitor(request, pk):
+    return _excluir(request, Leitor, 'leitores', pk)
