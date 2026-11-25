@@ -1,5 +1,10 @@
+from datetime import timedelta
+
 from django.core.validators import MinValueValidator, RegexValidator
 from django.db import models
+from django.utils import timezone
+
+PRAZO_DIAS = 14
 
 
 class Categoria(models.Model):
@@ -52,3 +57,22 @@ class Leitor(models.Model):
 
     def __str__(self):
         return self.nome
+
+
+def prazo_padrao():
+    return timezone.localdate() + timedelta(days=PRAZO_DIAS)
+
+
+class Emprestimo(models.Model):
+    livro = models.ForeignKey(Livro, on_delete=models.PROTECT)
+    leitor = models.ForeignKey(Leitor, on_delete=models.PROTECT)
+    data_saida = models.DateField('saída', default=timezone.localdate)
+    data_prevista = models.DateField('devolução prevista', default=prazo_padrao)
+    devolvido_em = models.DateField('devolvido em', null=True, blank=True)
+
+    class Meta:
+        ordering = ['-data_saida', '-id']
+        verbose_name = 'empréstimo'
+
+    def __str__(self):
+        return f'{self.livro} para {self.leitor}'
