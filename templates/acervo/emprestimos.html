@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% block titulo %}Empréstimos{% endblock %}
+{% block conteudo %}
+<div class="cabeca"><h1>Empréstimos</h1><a class="botao" href="{% url 'novo_emprestimo' %}">Emprestar livro</a></div>
+<form class="filtro">
+  <input name="q" value="{{ q }}" placeholder="Livro ou leitor">
+  <select name="situacao">{% for valor, rotulo in situacoes %}
+    <option value="{{ valor }}" {% if valor == situacao %}selected{% endif %}>{{ rotulo }}</option>{% endfor %}</select>
+  <button>Filtrar</button>
+</form>
+<div class="tabela"><table>
+  <thead><tr><th>Livro</th><th>Leitor</th><th>Saída</th><th>Prevista</th><th>Situação</th><th></th></tr></thead>
+  <tbody>
+  {% for e in pagina %}
+    <tr>
+      <td><strong>{{ e.livro.titulo }}</strong></td><td>{{ e.leitor.nome }}</td>
+      <td class="num">{{ e.data_saida|date:'d/m/Y' }}</td><td class="num">{{ e.data_prevista|date:'d/m/Y' }}</td>
+      <td>{% if e.devolvido_em %}<span class="selo">devolvido {{ e.devolvido_em|date:'d/m/Y' }}</span>
+        {% elif e.atrasado %}<span class="selo ruim">{{ e.dias_atraso }} dia{{ e.dias_atraso|pluralize }} de atraso</span>
+        {% else %}<span class="selo ok">no prazo</span>{% endif %}</td>
+      <td class="acoes">
+        {% if user.perfil.eh_admin %}<a href="{% url 'excluir_emprestimo' e.pk %}">Excluir</a>{% endif %}
+      </td>
+    </tr>
+  {% empty %}<tr><td colspan="6" class="suave">Nenhum empréstimo encontrado.</td></tr>{% endfor %}
+  </tbody>
+</table></div>
+{% include 'acervo/_paginas.html' %}
+{% endblock %}

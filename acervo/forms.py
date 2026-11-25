@@ -1,6 +1,6 @@
 from django import forms
 
-from .models import Autor, Categoria, Leitor, Livro
+from .models import Autor, Categoria, Emprestimo, Leitor, Livro
 
 
 class FormDaOrganizacao(forms.ModelForm):
@@ -38,6 +38,15 @@ class LeitorForm(FormDaOrganizacao):
     class Meta:
         model = Leitor
         fields = ['nome', 'email', 'telefone', 'ativo']
+
+
+class EmprestimoForm(FormDaOrganizacao):
+    class Meta:
+        model = Emprestimo
+        fields = ['livro', 'leitor', 'data_prevista']
+        widgets = {
+            'data_prevista': forms.DateInput(attrs={'type': 'date'}, format='%Y-%m-%d'),
+        }
 
 
 class FiltroLivroForm(forms.Form):

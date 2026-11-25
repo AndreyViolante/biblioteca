@@ -138,3 +138,12 @@ class Emprestimo(DaOrganizacao):
 
     def __str__(self):
         return f'{self.livro} para {self.leitor}'
+
+    @property
+    def atrasado(self):
+        return self.devolvido_em is None and self.data_prevista < timezone.localdate()
+
+    @property
+    def dias_atraso(self):
+        fim = self.devolvido_em or timezone.localdate()
+        return max((fim - self.data_prevista).days, 0)

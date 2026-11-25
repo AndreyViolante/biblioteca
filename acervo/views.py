@@ -2,11 +2,13 @@ from django.contrib import messages
 from django.core.paginator import Paginator
 from django.db.models import ProtectedError, Q
 from django.shortcuts import get_object_or_404, redirect, render
+from django.utils import timezone
 
 from core.acesso import org_atual, papel_requerido, perfil_requerido
 
-from .forms import AutorForm, CategoriaForm, FiltroLivroForm, LeitorForm, LivroForm
-from .models import Autor, Categoria, Leitor, Livro
+from .forms import (AutorForm, CategoriaForm, EmprestimoForm, FiltroLivroForm,
+                    LeitorForm, LivroForm)
+from .models import Autor, Categoria, Emprestimo, Leitor, Livro
 
 
 # ---------- Funções comuns a todos os cadastros ----------
@@ -157,3 +159,35 @@ def editar_leitor(request, pk):
 @papel_requerido('admin')
 def excluir_leitor(request, pk):
     return _excluir(request, Leitor, 'leitores', pk)
+
+
+# ---------- Empréstimos ----------
+
+@perfil_requerido
+def lista_emprestimos(request):
+    qs = (Emprestimo.objects.filter(organizacao=org_atual(request))
+          .select_related('livro', 'leitor'))
+    situacao = request.GET.get('situacao', 'abertos')
+    if situacao == 'abertos':
+        qs = qs.filter(devolvido_em__isnull=True)
+    elif situacao == 'atrasados':
+        qs = qs.filter(devolvido_em__isnull=True, data_prevista__lt=timezone.localdate())
+    elif situacao == 'devolvidos':
+        qs = qs.filter(devolvido_em__isnull=False)
+    q = request.GET.get('q', '').strip()
+    if q:
+        qs = qs.filter(Q(livro__titulo__icontains=q) | Q(leitor__nome__icontains=q))
+    return render(request, 'acervo/emprestimos.html', {
+        'pagina': _paginar(request, qs), 'situacao': situacao, 'q': q,
+        'situacoes': [('abertos', 'Abertos'), ('atrasados', 'Atrasados'),
+                      ('devolvidos', 'Devolvidos'), ('todos', 'Todos')]})
+
+
+@perfil_requerido
+def novo_emprestimo(request):
+    return _salvar(request, EmprestimoForm, 'emprestimos', 'Novo empréstimo')
+
+
+@papel_requerido('admin')
+def excluir_emprestimo(request, pk):
+    return _excluir(request, Emprestimo, 'emprestimos', pk)

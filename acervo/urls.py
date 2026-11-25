@@ -22,4 +22,8 @@ urlpatterns = [
     path('leitores/novo/', views.novo_leitor, name='novo_leitor'),
     path('leitores/<int:pk>/editar/', views.editar_leitor, name='editar_leitor'),
     path('leitores/<int:pk>/excluir/', views.excluir_leitor, name='excluir_leitor'),
+
+    path('emprestimos/', views.lista_emprestimos, name='emprestimos'),
+    path('emprestimos/novo/', views.novo_emprestimo, name='novo_emprestimo'),
+    path('emprestimos/<int:pk>/excluir/', views.excluir_emprestimo, name='excluir_emprestimo'),
 ]
