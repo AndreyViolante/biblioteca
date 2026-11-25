@@ -1,4 +1,9 @@
-from acervo.models import Livro
+from datetime import timedelta
+
+from django.core.exceptions import ValidationError
+from django.utils import timezone
+
+from acervo.models import Emprestimo, Leitor, Livro
 
 from .base import BaseTest
 
@@ -44,3 +49,49 @@ class IsolamentoTest(BaseTest):
         # Repetido dentro da própria organização: erro no campo, sem IntegrityError.
         r = self.client.post('/livros/novo/', dados)
         self.assertIn('isbn', r.context['form'].errors)
+
+
+class RegrasEmprestimoTest(BaseTest):
+    def novo(self, livro=None, leitor=None):
+        return Emprestimo(organizacao=self.org_a, livro=livro or self.livro_a,
+                          leitor=leitor or self.leitor_a)
+
+    def assertRecusado(self, emprestimo, campo):
+        with self.assertRaises(ValidationError) as ctx:
+            emprestimo.full_clean()
+        self.assertIn(campo, ctx.exception.message_dict)
+
+    def test_valido(self):
+        self.novo().full_clean()
+
+    def test_sem_exemplar_disponivel(self):
+        outro = Leitor.objects.create(organizacao=self.org_a, nome='X', email='x@exemplo.com')
+        self.emprestar(self.livro_a, outro)
+        self.assertRecusado(self.novo(), 'livro')
+
+    def test_leitor_inativo(self):
+        self.leitor_a.ativo = False
+        self.assertRecusado(self.novo(), 'leitor')
+
+    def test_leitor_com_atraso(self):
+        outro = self.criar_livro(self.org_a, 'Outro', '4444444444444')
+        ontem = timezone.localdate() - timedelta(days=1)
+        self.emprestar(outro, self.leitor_a, data_saida=ontem - timedelta(days=14),
+                       data_prevista=ontem)
+        self.assertRecusado(self.novo(), 'leitor')
+
+    def test_limite_por_leitor(self):
+        for i in range(3):
+            self.emprestar(self.criar_livro(self.org_a, f'L{i}', f'555555555555{i}'), self.leitor_a)
+        self.assertRecusado(self.novo(), 'leitor')
+
+    def test_livro_de_outra_org(self):
+        self.assertRecusado(self.novo(livro=self.livro_b), 'livro')
+
+    def test_devolver_libera_o_exemplar_e_nao_repete(self):
+        e = self.emprestar(self.livro_a, self.leitor_a)
+        self.assertFalse(self.livro_a.disponivel)
+        e.devolver()
+        self.assertTrue(self.livro_a.disponivel)
+        with self.assertRaises(ValidationError):
+            e.devolver()
