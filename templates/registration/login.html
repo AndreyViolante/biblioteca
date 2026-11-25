@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+{% block titulo %}Entrar{% endblock %}
+{% block conteudo %}
+<section class="painel estreito">
+  <h1>Biblioteca</h1>
+  <p class="suave">Entre com o usuário da sua organização.</p>
+  <form method="post">{% csrf_token %}
+    {{ form.as_p }}
+    <button>Entrar</button>
+  </form>
+</section>
+{% endblock %}

@@ -7,6 +7,17 @@
   <link rel="stylesheet" href="{% static 'css/estilo.css' %}">
 </head>
 <body>
+{% if user.is_authenticated and user.perfil %}
+<header class="topo">
+  <div class="marca">
+    <strong>{{ user.perfil.organizacao }}</strong>
+    <small>{{ user.get_full_name|default:user.username }}, {{ user.perfil.get_papel_display|lower }}</small>
+  </div>
+  <nav>
+  </nav>
+  <form method="post" action="{% url 'logout' %}">{% csrf_token %}<button class="sair">Sair</button></form>
+</header>
+{% endif %}
 <main>
   {% for m in messages %}<p class="aviso {{ m.tags }}">{{ m }}</p>{% endfor %}
   {% block conteudo %}{% endblock %}
