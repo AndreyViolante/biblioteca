@@ -3,9 +3,11 @@ from django.db.models import ProtectedError
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from core.acesso import org_atual
 
+from . import dashboard as metricas
 from .models import Autor, Categoria, Emprestimo, Leitor, Livro
 from .serializers import (AutorSerializer, CategoriaSerializer,
                           EmprestimoSerializer, LeitorSerializer, LivroSerializer)
@@ -67,3 +69,18 @@ class EmprestimoViewSet(DaOrganizacaoMixin, mixins.CreateModelMixin,
         except ValidationError as erro:
             return Response({'detail': erro.messages[0]}, status=status.HTTP_400_BAD_REQUEST)
         return Response(self.get_serializer(emprestimo).data)
+
+
+class DashboardApi(APIView):
+    def get(self, request):
+        base, form = metricas.emprestimos_do_periodo(request, org_atual(request))
+        if not form.is_valid():
+            return Response(form.errors, status=status.HTTP_400_BAD_REQUEST)
+        dados = {
+            'kpis': metricas.kpis(base),
+            'ranking': metricas.ranking_livros(base),
+            'por_categoria': metricas.por_categoria(base),
+        }
+        if request.user.perfil.eh_admin:
+            dados['por_mes'] = metricas.por_mes(base)
+        return Response(dados)

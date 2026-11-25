@@ -11,5 +11,6 @@ router.register('leitores', api_views.LeitorViewSet)
 router.register('emprestimos', api_views.EmprestimoViewSet)
 
 urlpatterns = [
+    path('dashboard/', api_views.DashboardApi.as_view()),
     path('', include(router.urls)),
 ]
