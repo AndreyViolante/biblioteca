@@ -1,4 +1,4 @@
-from datetime import timedelta
+from datetime import date, timedelta
 
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
@@ -128,3 +128,52 @@ class RegrasEmprestimoTest(BaseTest):
         self.assertTrue(self.livro_a.disponivel)
         with self.assertRaises(ValidationError):
             e.devolver()
+
+
+class DashboardTest(BaseTest):
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        # Números fáceis de conferir: A tem 3 empréstimos e B tem 5.
+        for mes in (1, 1, 2):
+            cls.emprestar(cls.livro_a, cls.leitor_a, data_saida=date(2026, mes, 10),
+                          data_prevista=date(2026, mes, 24), devolvido_em=date(2026, mes, 20))
+        for _ in range(5):
+            cls.emprestar(cls.livro_b, cls.leitor_b, data_saida=date(2026, 1, 10),
+                          data_prevista=date(2026, 1, 24))
+
+    def abrir(self, usuario, url='/dashboard/'):
+        self.client.force_login(usuario)
+        return self.client.get(url)
+
+    def test_total_da_organizacao(self):
+        self.assertEqual(self.abrir(self.admin_a).context['kpis']['total'], 3)
+        self.assertEqual(self.abrir(self.admin_b).context['kpis']['atrasados'], 5)
+
+    def test_filtro_por_periodo(self):
+        r = self.abrir(self.admin_a, '/dashboard/?inicio=2026-01-01&fim=2026-01-31')
+        self.assertEqual(r.context['kpis']['total'], 2)
+
+    def test_data_malformada_nao_quebra(self):
+        r = self.abrir(self.admin_a, '/dashboard/?inicio=abc')
+        self.assertEqual(r.status_code, 200)
+
+    def test_serie_por_mes_em_ordem(self):
+        self.assertEqual(self.abrir(self.admin_a).context['por_mes'], [
+            {'rotulo': '01/2026', 'total': 2}, {'rotulo': '02/2026', 'total': 1}])
+
+    def test_dashboard_vazio(self):
+        Emprestimo.objects.all().delete()
+        self.assertContains(self.abrir(self.admin_a), 'Sem dados no período.')
+
+    def test_operador_sem_serie_e_sem_exportacao(self):
+        self.assertNotIn('por_mes', self.abrir(self.operador_a).context)
+        self.assertEqual(self.abrir(self.operador_a, '/dashboard/exportar/').status_code, 403)
+
+    def test_csv_da_organizacao_sem_formula(self):
+        self.livro_a.titulo = '=1+1'
+        self.livro_a.save()
+        texto = self.abrir(self.admin_a, '/dashboard/exportar/').content.decode()
+        self.assertEqual(len(texto.strip().splitlines()), 4)  # cabeçalho + 3
+        self.assertIn("'=1+1", texto)
+        self.assertNotIn('Livro da B', texto)
