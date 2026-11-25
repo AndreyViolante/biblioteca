@@ -45,14 +45,23 @@ class DaOrganizacao(models.Model):
 
 
 class Perfil(models.Model):
-    """Liga o usuário a UMA organização."""
+    """Liga o usuário a UMA organização e a UM papel."""
+
+    ADMIN = 'admin'
+    OPERADOR = 'operador'
+    PAPEIS = [(ADMIN, 'Administrador'), (OPERADOR, 'Operador')]
 
     usuario = models.OneToOneField(User, on_delete=models.CASCADE, verbose_name='usuário')
     organizacao = models.ForeignKey(
         Organizacao, on_delete=models.PROTECT, verbose_name='organização')
+    papel = models.CharField(max_length=20, choices=PAPEIS, default=OPERADOR)
 
     class Meta:
         verbose_name_plural = 'perfis'
 
     def __str__(self):
-        return f'{self.usuario} ({self.organizacao})'
+        return f'{self.usuario} ({self.get_papel_display()}, {self.organizacao})'
+
+    @property
+    def eh_admin(self):
+        return self.papel == self.ADMIN
