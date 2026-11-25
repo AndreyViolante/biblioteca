@@ -67,3 +67,22 @@ de 3 empréstimos abertos e sem o mesmo livro em mãos.
 `/api/emprestimos/`, `POST /api/emprestimos/<id>/devolver/` e
 `/api/dashboard/?inicio=AAAA-MM-DD&fim=AAAA-MM-DD`.
 Autenticação por sessão (login em `/entrar/` ou `/api-auth/login/`).
+
+## Testes
+
+```
+python manage.py test
+```
+
+São 35 testes. O roteiro de isolamento da Aula 14 está automatizado em
+`acervo/tests/test_telas.py` (IsolamentoTest):
+
+| Cenário | Esperado | Resultado |
+|---|---|---|
+| Usuário A abre a lista de livros | Só livros da A | OK |
+| Usuário A abre `/livros/ID-da-B/editar/` | 404 | OK |
+| Usuário A cria um livro | Gravado na organização A | OK |
+| Formulário do usuário A | Selects só com opções da A | OK |
+| Usuário A cadastra ISBN que existe na B | Permitido | OK |
+
+`ConsultasTest` garante que listas, dashboard e API não têm N+1.
