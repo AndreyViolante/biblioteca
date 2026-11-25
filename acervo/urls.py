@@ -6,6 +6,7 @@ from . import views
 urlpatterns = [
     path('', RedirectView.as_view(pattern_name='dashboard')),
     path('dashboard/', views.dashboard, name='dashboard'),
+    path('dashboard/exportar/', views.exportar_csv, name='exportar_csv'),
 
     path('livros/', views.lista_livros, name='livros'),
     path('livros/novo/', views.novo_livro, name='novo_livro'),

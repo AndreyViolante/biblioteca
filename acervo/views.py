@@ -1,7 +1,10 @@
+import csv
+
 from django.contrib import messages
 from django.core.exceptions import ValidationError
 from django.core.paginator import Paginator
 from django.db.models import ProtectedError, Q
+from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.views.decorators.http import require_POST
@@ -225,3 +228,23 @@ def dashboard(request):
     if contexto['mostra_series']:
         contexto['por_mes'] = metricas.por_mes(base)
     return render(request, 'acervo/dashboard.html', contexto)
+
+
+def _celula(texto):
+    """Impede que o Excel interprete o texto como fórmula."""
+    return "'" + texto if texto.startswith(('=', '+', '-', '@')) else texto
+
+
+@papel_requerido('admin')
+def exportar_csv(request):
+    base, _ = metricas.emprestimos_do_periodo(request, org_atual(request))
+    resposta = HttpResponse(content_type='text/csv; charset=utf-8')
+    resposta['Content-Disposition'] = 'attachment; filename="emprestimos.csv"'
+    resposta.write('\ufeff')  # BOM: o Excel reconhece os acentos
+    escritor = csv.writer(resposta, delimiter=';')
+    escritor.writerow(['Livro', 'Leitor', 'Saída', 'Prevista', 'Devolvido em'])
+    for e in base.select_related('livro', 'leitor'):
+        escritor.writerow([
+            _celula(e.livro.titulo), _celula(e.leitor.nome),
+            e.data_saida, e.data_prevista, e.devolvido_em or ''])
+    return resposta
