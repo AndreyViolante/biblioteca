@@ -20,7 +20,7 @@ class DaOrganizacao(models.Model):
     """Base abstrata: todo model de negócio pertence a uma organização."""
 
     organizacao = models.ForeignKey(
-        Organizacao, on_delete=models.PROTECT, null=True, verbose_name='organização')
+        Organizacao, on_delete=models.PROTECT, verbose_name='organização')
 
     class Meta:
         abstract = True
