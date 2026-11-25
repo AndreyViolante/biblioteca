@@ -4,8 +4,8 @@ from rest_framework.response import Response
 
 from core.acesso import org_atual
 
-from .models import Autor, Categoria
-from .serializers import AutorSerializer, CategoriaSerializer
+from .models import Autor, Categoria, Livro
+from .serializers import AutorSerializer, CategoriaSerializer, LivroSerializer
 
 
 class DaOrganizacaoMixin:
@@ -33,3 +33,9 @@ class CategoriaViewSet(DaOrganizacaoMixin, viewsets.ModelViewSet):
 class AutorViewSet(DaOrganizacaoMixin, viewsets.ModelViewSet):
     queryset = Autor.objects.all()
     serializer_class = AutorSerializer
+
+
+class LivroViewSet(DaOrganizacaoMixin, viewsets.ModelViewSet):
+    queryset = (Livro.objects.com_disponibilidade()
+                .select_related('categoria').prefetch_related('autores'))
+    serializer_class = LivroSerializer

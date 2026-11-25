@@ -5,7 +5,7 @@ from rest_framework import serializers
 
 from core.acesso import org_atual
 
-from .models import Autor, Categoria
+from .models import Autor, Categoria, Livro
 
 
 class SerializerDaOrganizacao(serializers.ModelSerializer):
@@ -45,3 +45,13 @@ class AutorSerializer(SerializerDaOrganizacao):
     class Meta:
         model = Autor
         fields = ['id', 'nome']
+
+
+class LivroSerializer(SerializerDaOrganizacao):
+    categoria_nome = serializers.CharField(source='categoria.nome', read_only=True)
+    disponivel = serializers.BooleanField(read_only=True)
+
+    class Meta:
+        model = Livro
+        fields = ['id', 'titulo', 'isbn', 'ano', 'categoria', 'categoria_nome',
+                  'autores', 'exemplares', 'disponivel']
