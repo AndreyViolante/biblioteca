@@ -32,3 +32,14 @@ class LivroForm(FormDaOrganizacao):
         model = Livro
         fields = ['titulo', 'isbn', 'ano', 'categoria', 'autores', 'exemplares']
         widgets = {'autores': forms.CheckboxSelectMultiple}
+
+
+class FiltroLivroForm(forms.Form):
+    q = forms.CharField(required=False, label='Busca')
+    categoria = forms.ModelChoiceField(
+        Categoria.objects.none(), required=False, empty_label='Todas as categorias')
+
+    def __init__(self, *args, org, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['categoria'].queryset = Categoria.objects.filter(organizacao=org)
+        self.fields['q'].widget.attrs['placeholder'] = 'Título, autor ou ISBN'

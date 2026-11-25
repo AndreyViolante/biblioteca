@@ -1,11 +1,11 @@
 from django.contrib import messages
 from django.core.paginator import Paginator
-from django.db.models import ProtectedError
+from django.db.models import ProtectedError, Q
 from django.shortcuts import get_object_or_404, redirect, render
 
 from core.acesso import org_atual, papel_requerido, perfil_requerido
 
-from .forms import AutorForm, CategoriaForm, LivroForm
+from .forms import AutorForm, CategoriaForm, FiltroLivroForm, LivroForm
 from .models import Autor, Categoria, Livro
 
 
@@ -56,7 +56,16 @@ def lista_livros(request):
         .com_disponibilidade()
         .select_related('categoria')
         .prefetch_related('autores'))
-    return render(request, 'acervo/livros.html', {'pagina': _paginar(request, livros)})
+    filtro = FiltroLivroForm(request.GET, org=org)
+    if filtro.is_valid():
+        q = filtro.cleaned_data['q']
+        if q:
+            livros = livros.filter(
+                Q(titulo__icontains=q) | Q(isbn__icontains=q) | Q(autores__nome__icontains=q))
+        if filtro.cleaned_data['categoria']:
+            livros = livros.filter(categoria=filtro.cleaned_data['categoria'])
+    return render(request, 'acervo/livros.html',
+                  {'pagina': _paginar(request, livros), 'filtro': filtro})
 
 
 @papel_requerido('admin')

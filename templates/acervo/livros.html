@@ -3,6 +3,7 @@
 {% block conteudo %}
 <div class="cabeca"><h1>Livros</h1>
   {% if user.perfil.eh_admin %}<a class="botao" href="{% url 'novo_livro' %}">Cadastrar</a>{% endif %}</div>
+<form class="filtro">{{ filtro.q }} {{ filtro.categoria }} <button>Filtrar</button></form>
 <div class="tabela"><table>
   <thead><tr><th>Título</th><th>Autores</th><th>Categoria</th><th>ISBN</th><th>Disponíveis</th><th></th></tr></thead>
   <tbody>
